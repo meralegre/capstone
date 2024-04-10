@@ -33,5 +33,27 @@ def rename_columns(df, rename_suffix):
         for suffix_change, suffix_add in rename_suffix:
             if col.endswith(suffix_change):
                 new_columns[i] = col.replace(suffix_change, '') + suffix_add
-                break  # Assumes only one rule applies per column, goes to the next column after a replacement
-    return df.rename(columns=dict(zip(df.columns, new_columns)))
+                #print(new_columns)
+    df.columns = new_columns
+    return df
+
+def attributes_ranking(row, attribute_columns, wave_column, scale_min=1, scale_max=10):
+    """
+    Scales attribute points directly in the original columns based on specified conditions.
+    
+    Parameters:
+    - row: The row of the DataFrame being processed.
+    - attribute_columns: List of columns containing attribute points to be scaled.
+    - wave_column: The column to check for the specified condition.
+    - scale_min, scale_max: The minimum and maximum of the new scale (default 1 to 10).
+    
+    Returns:
+    - A modified row with scaled attributes if conditions are met.
+    """
+    # Check if the 'wave' column's value is within the specified ranges
+    if row[wave_column] in list(range(1, 6)) + list(range(10, 22)):
+        for col in attribute_columns:
+            # Scale the attribute directly, updating the original column value
+            row[col] = round(((row[col] / 100) * (scale_max - scale_min)) + scale_min, 2)
+    return row
+    
