@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def convert_to_numeric(obj):
     """
@@ -56,4 +57,30 @@ def attributes_ranking(row, attribute_columns, wave_column, scale_min=1, scale_m
             # Scale the attribute directly, updating the original column value
             row[col] = round(((row[col] / 100) * (scale_max - scale_min)) + scale_min, 2)
     return row
+
+def age_distribution(df):
+    """
+    Calculate the percentage of people's ages within 5-year gaps.
+
+    Parameters:
+    - df: Pandas DataFrame containing the age data.
+    - age_column: The name of the column in the DataFrame that contains age data.
+
+    Returns:
+    - A DataFrame with each 5-year age gap and the corresponding percentage 
+    of people within that range.
+    """
+    df['age'] = df['age'].dropna()
     
+    bins = [0, 20, 25, 30, 35, 40, 45, 50, 60] 
+    labels = ['<20', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '>50']
+
+    # Use pandas cut to categorize each age into bins
+    binned_ages = pd.cut(df['age'], bins=bins, labels=labels, right=False, include_lowest=True)
+
+    age_distribution = binned_ages.value_counts(normalize=True).sort_index() * 100
+
+    age_distribution_df = age_distribution.reset_index()
+    age_distribution_df.columns = ['Age Range', 'Percentage']
+
+    return age_distribution_df.round(2)
