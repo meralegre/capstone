@@ -84,3 +84,48 @@ def age_distribution(df):
     age_distribution_df.columns = ['Age Range', 'Percentage']
 
     return age_distribution_df.round(2)
+
+def drop_columns(df, suffix):
+    cols = [col for col in df.columns if any(col.endswith(s) for s in suffix)]
+    
+    df = df.drop(columns=cols, errors='ignore')
+    
+    return df
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
