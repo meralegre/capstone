@@ -38,24 +38,31 @@ def rename_columns(df, rename_suffix):
     df.columns = new_columns
     return df
 
-def attributes_ranking(row, attribute_columns, wave_column, scale_min=1, scale_max=10):
+def attribute_ranking(row, attribute_groups):
     """
-    Scales attribute points directly in the original columns based on specified conditions.
+    Ranks attribute points directly in the original columns based on their importance, with tie-breaking.
+    Fills NaN values with 0 before ranking and applies a small random noise to break ties.
     
     Parameters:
-    - row: The row of the DataFrame being processed.
-    - attribute_columns: List of columns containing attribute points to be scaled.
-    - wave_column: The column to check for the specified condition.
-    - scale_min, scale_max: The minimum and maximum of the new scale (default 1 to 10).
+    - row: A single row (Series) from DataFrame.
+    - attribute_columns: List of columns containing attribute points to be ranked.
+    - wave_column: The column indicating the wave to check for specific ranking rules.
     
     Returns:
-    - A modified row with scaled attributes if conditions are met.
+    - A modified row with uniquely ranked attributes.
     """
-    # Check if the 'wave' column's value is within the specified ranges
-    if row[wave_column] in list(range(1, 6)) + list(range(10, 22)):
-        for col in attribute_columns:
-            # Scale the attribute directly, updating the original column value
-            row[col] = round(((row[col] / 100) * (scale_max - scale_min)) + scale_min, 2)
+    for attribute_columns in attribute_groups:
+        row[attribute_columns] = row[attribute_columns].fillna(0)
+        
+        # Add a small random noise to break ties
+        noise = np.random.normal(0, 0.01, len(attribute_columns))
+        noisy_attributes = row[attribute_columns] + noise
+        
+        # Rank the attributes, lower number means more important
+        ranks = noisy_attributes.rank(method='first', ascending=False).astype(int)  # 'first' to handle ties by order of appearance
+    
+        row[attribute_columns] = ranks
+
     return row
 
 def age_distribution(df):
