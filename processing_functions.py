@@ -99,8 +99,79 @@ def drop_columns(df, suffix):
     
     return df
     
+def pr_threshold(model, X_test, y_test, model_name='Model'):
+    """
+    Calculate and plot the precision-recall curve for a given model and test data.
+    Also, find the threshold that yields the highest F1 score and plot the classification report based on this threshold.
+
+    Parameters:
+    model: The trained classifier to evaluate.
+    X_test: The test features.
+    y_test: The true labels for the test set.
+    model_name (optional): Name of the model to include in the plot title.
+
+    Returns:
+    optimal_threshold: The threshold value that yields the highest F1 score.
+    optimal_report: Classification report using the optimal threshold.
+    """
     
+    # Predict probabilities for the positive class
+    probabilities = model.predict_proba(X_test)[:, 1]
+
+    # Calculate precision, recall, and thresholds using the predicted probabilities
+    precision, recall, thresholds = precision_recall_curve(y_test, probabilities)
+
+    # Calculate the F1 score for each threshold
+    # Add a tiny constant to avoid division by zero
+    fscore = (2 * precision * recall) / (precision + recall + 1e-12)
+
+    # Find the index of the maximum F1 score
+    optimal_index = np.argmax(fscore)
+    optimal_threshold = thresholds[optimal_index]
+
+    # Make final predictions using the optimal threshold
+    final_predictions = (probabilities >= optimal_threshold).astype(int)
+
+    # Plot precision, recall, and F1 score as functions of the threshold
+    plt.figure(figsize=(10, 6))
+    plt.plot(thresholds, precision[:-1], 'b--', label='Precision')
+    plt.plot(thresholds, recall[:-1], 'g-', label='Recall')
+    plt.plot(thresholds, fscore[:-1], 'r-.', label='F1 Score')
+    plt.axvline(x=optimal_threshold, color='k', linestyle='--', label='Optimal Threshold')
+    plt.xlabel('Threshold')
+    plt.legend(loc='best')
+    plt.ylim([0, 1])
+    plt.title(f'{model_name}: Precision, Recall, and F1 Score for different thresholds')
+    plt.show()
+
+    # Generate and print classification report
+    optimal_report = classification_report(y_test, final_predictions, zero_division=0)
+    return optimal_threshold, optimal_report
+
+def generate_combinations(list_a, list_b):
+    n = len(list_a)
+    combinations = []
     
+    # Initial lists are copied to avoid modifying the original lists
+    current_a = list_a[:]
+    current_b = list_b[:]
+    
+    # We need n rounds to fully cycle through each list
+    for _ in range(n):
+        # Append the current configuration
+        combinations.append([current_a[:], current_b[:]])
+        
+        # Pop the last element from A and push it to the front of B
+        element_from_a = current_a.pop()
+        current_b.insert(0, element_from_a)
+        
+        # Pop the last element from B and push it to the front of A
+        element_from_b = current_b.pop()
+        current_a.insert(0, element_from_b)
+
+    combinations.append([current_a[:], current_b[:]])
+    
+    return combinations
     
     
     
