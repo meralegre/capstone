@@ -99,10 +99,10 @@ def drop_columns(df, suffix):
     
     return df
     
-def pr_threshold(model, X_test, y_test, model_name='Model'):
+def pr_threshold(model, model_name='Model'):
     """
     Calculate and plot the precision-recall curve for a given model and test data.
-    Also, find the threshold that yields the highest F1 score and plot the classification report based on this threshold.
+    Also, find the threshold that yields the highest F1 score using an iterative method and plot the classification report based on this threshold.
 
     Parameters:
     model: The trained classifier to evaluate.
@@ -114,39 +114,35 @@ def pr_threshold(model, X_test, y_test, model_name='Model'):
     optimal_threshold: The threshold value that yields the highest F1 score.
     optimal_report: Classification report using the optimal threshold.
     """
-    
-    # Predict probabilities for the positive class
-    probabilities = model.predict_proba(X_test)[:, 1]
+    # probabilities for the positive class
+    probabilities = model.predict_proba(X_val)[:,1]
 
-    # Calculate precision, recall, and thresholds using the predicted probabilities
-    precision, recall, thresholds = precision_recall_curve(y_test, probabilities)
+    # precision, recall, and thresholds using the predicted probabilities
+    precision, recall, thresholds = precision_recall_curve(y_val, probabilities)
 
-    # Calculate the F1 score for each threshold
-    # Add a tiny constant to avoid division by zero
+    # F1 score for each threshold with tiny constant to avoid division by zero
     fscore = (2 * precision * recall) / (precision + recall + 1e-12)
 
     # Find the index of the maximum F1 score
     optimal_index = np.argmax(fscore)
-    optimal_threshold = thresholds[optimal_index]
+    best_threshold = thresholds[optimal_index]
 
     # Make final predictions using the optimal threshold
-    final_predictions = (probabilities >= optimal_threshold).astype(int)
+    final_predictions = (model.predict_proba(X_test)[:,1] >= best_threshold).astype(int)
 
-    # Plot precision, recall, and F1 score as functions of the threshold
     plt.figure(figsize=(10, 6))
     plt.plot(thresholds, precision[:-1], 'b--', label='Precision')
     plt.plot(thresholds, recall[:-1], 'g-', label='Recall')
-    plt.plot(thresholds, fscore[:-1], 'r-.', label='F1 Score')
-    plt.axvline(x=optimal_threshold, color='k', linestyle='--', label='Optimal Threshold')
+    plt.plot(thresholds, (2 * precision[:-1] * recall[:-1]) / (precision[:-1] + recall[:-1] + 1e-12), 'r-.', label='F1 Score')
+    plt.axvline(x=best_threshold, color='k', linestyle='--', label='Optimal Threshold')
     plt.xlabel('Threshold')
     plt.legend(loc='best')
     plt.ylim([0, 1])
     plt.title(f'{model_name}: Precision, Recall, and F1 Score for different thresholds')
     plt.show()
 
-    # Generate and print classification report
     optimal_report = classification_report(y_test, final_predictions, zero_division=0)
-    return optimal_threshold, optimal_report
+    return best_threshold, optimal_report
 
 def generate_combinations(list_a, list_b):
     n = len(list_a)
@@ -173,7 +169,39 @@ def generate_combinations(list_a, list_b):
     
     return combinations
     
+def shap_importance(model):
+    """
+    Return a dataframe containing the features sorted by Shap importance.
+
+    Parameters:
+    model : The tree-based model (like RandomForest, XGBoost, etc.).
+    X_train : pd.DataFrame
+        Training set used to train the model (without the label).
+    X_test : pd.DataFrame
+        Test set or any set to compute SHAP values (without the label).
+
+    Returns:
+    pd.DataFrame
+        A dataframe containing the features sorted by Shap importance.
+    """
+    explainer = shap.Explainer(model, X_train)
     
+    shap_values = explainer.shap_values(X_test, check_additivity=False)
+    
+    if isinstance(shap_values, list):
+        shap_values = np.abs(shap_values[1])
+    else:
+        shap_values = np.abs(shap_values)
+        
+    mean_abs_shap_values = shap_values.mean(axis=0)
+    
+    feature_importance = pd.DataFrame({
+        'features': X_test.columns,
+        'importance': mean_abs_shap_values
+    })
+    
+    feature_importance.sort_values(by='importance', ascending=False, inplace=True)
+    return feature_importance.reset_index(drop=True).head(10)
     
     
     
