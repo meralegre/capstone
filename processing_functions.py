@@ -144,7 +144,7 @@ def pr_threshold(model, model_name='Model'):
     optimal_report = classification_report(y_test, final_predictions, zero_division=0)
     return best_threshold, optimal_report
 
-def generate_combinations(list_a, list_b):
+def generate_combinations_og(list_a, list_b):
     n = len(list_a)
     combinations = []
     
