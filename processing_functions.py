@@ -148,23 +148,23 @@ def generate_combinations(list_a, list_b):
     n = len(list_a)
     combinations = []
     
-    # Initial lists are copied to avoid modifying the original lists
+    # avoid modifying the original lists
     current_a = list_a[:]
     current_b = list_b[:]
     
-    # We need n rounds to fully cycle through each list
+    # n rounds to cycle through each list
     for _ in range(n):
-        # Append the current configuration
         combinations.append([current_a[:], current_b[:]])
         
-        # Pop the last element from A and push it to the front of B
-        element_from_a = current_a.pop()
-        current_b.insert(0, element_from_a)
+        # pop the last element from A and push it to the front of B
+        element_a = current_a.pop()
+        current_b.insert(0, element_a)
         
-        # Pop the last element from B and push it to the front of A
-        element_from_b = current_b.pop()
-        current_a.insert(0, element_from_b)
+        # pop the last element from B and push it to the front of A
+        element_b = current_b.pop()
+        current_a.insert(0, element_b)
 
+    # last step: mirrored lists
     combinations.append([current_a[:], current_b[:]])
     
     return combinations
