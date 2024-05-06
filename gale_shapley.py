@@ -43,6 +43,139 @@ def stable_matching(men, women, men_prefs, women_prefs):
     return engagements
 
 
+def get_preferred_partners(preferences, current_partner):
+    index = preferences.index(current_partner)
+    return preferences[:index]
+
+
+def check(engaged):
+    inverseengaged = dict((v,k) for k,v in engaged.items())
+    for she, he in engaged.items():
+        shelikes = galprefers[she]
+        shelikesbetter = shelikes[:shelikes.index(he)]
+        helikes = guyprefers[he]
+        helikesbetter = helikes[:helikes.index(she)]
+        for guy in shelikesbetter:
+            guysgirl = inverseengaged[guy]
+            guylikes = guyprefers[guy]
+            if guylikes.index(guysgirl) > guylikes.index(she):
+                print("%s and %s like each other better than "
+                      "their present partners: %s and %s, respectively"
+                      % (she, guy, he, guysgirl))
+                return False
+        for gal in helikesbetter:
+            girlsguy = engaged[gal]
+            gallikes = galprefers[gal]
+            if gallikes.index(girlsguy) > gallikes.index(he):
+                print("%s and %s like each other better than "
+                      "their present partners: %s and %s, respectively"
+                      % (he, gal, she, girlsguy))
+                return False
+    return True
+
+
+# def check_engagement(engagements):
+#     received_engagement =  {v: k, for k, v in engagements.items()}
+#     for proposer, receiver in engagements.items():
+#         preferred_proposers = get_preferred_partners(
+#             receiver_prefers[receiver], proposer)
+#         preferred_receivers = get_preferred_partners(
+#             proposer_prefers[proposer], receiver)
+#         for prop in preferred_proposers:
+#             main_proposer = received_engagement[prop]
+#              = 
+            
+
+
+# def is_stable_pair(engagements, receiver_prefers, proposer_prefers):
+#     inverse_engaged = {v: k for k, v in engagements.items()}
+#     for receiver, proposer in engagements.items():
+#         preferred_proposers = get_preferred_partners(
+#             receiver_prefers[receiver], proposer)
+#         preferred_receivers = get_preferred_partners(
+#             proposer_prefers[proposer], receiver)
+
+#         if any_prefers_current(
+#                 engagements, 
+#                 receiver, 
+#                 proposer, 
+#                 preferred_proposers, 
+#                 preferred_receivers, 
+#                 inverse_engaged, 
+#                 receiver_prefers, 
+#                 proposer_prefers
+#                 ):
+#             return False
+
+#     return True
+
+# def any_prefers_current(engagements, receiver, proposer, preferred_proposers, preferred_receivers, inverse_engaged, receiver_prefers, proposer_prefers):
+#     for other_prop in preferred_proposers:
+#         other_proposer_partner = inverse_engaged[other_prop]
+#         if proposer_prefers[other_prop].index(other_proposer_partner) > proposer_prefers[other_prop].index(receiver):
+#             print(f"{receiver} and {other_prop} like each other better than their present partners: {proposer} and {other_proposer_partner}, respectively")
+#             return True
+
+#     for other_rec in preferred_receivers:
+#         other_receiver_partner = engagements[other_rec]
+#         if receiver_prefers[other_rec].index(other_receiver_partner) > receiver_prefers[other_rec].index(proposer):
+#             print(f"{proposer} and {other_rec} like each other better than their present partners: {receiver} and {other_receiver_partner}, respectively")
+#             return True
+
+#     return False
+
+engagements1 = stable_matching(a, b, pref_reg_a, pref_reg_b)
+    
+def is_stable_pair(engaged, galprefers, guyprefers):
+    inverse_engaged = {v: k for k, v in engaged.items()}
+
+    for woman, man in engaged.items():
+        preferred_men = galprefers[woman][:galprefers[woman].index(man)]
+        preferred_women = guyprefers[man][:guyprefers[man].index(woman)]
+
+        if any_prefers_current(engaged, woman, man, preferred_men, preferred_women, inverse_engaged, galprefers, guyprefers):
+            return False
+
+    return True
+
+def any_prefers_current(engaged, woman, man, preferred_men, preferred_women, inverse_engaged, galprefers, guyprefers):
+    for other_man in preferred_men:
+        other_man_partner = inverse_engaged[other_man]
+        if guyprefers[other_man].index(other_man_partner) > guyprefers[other_man].index(woman):
+            print(f"{woman} and {other_man} like each other better than their present partners: {man} and {other_man_partner}, respectively")
+            return True
+
+    for other_woman in preferred_women:
+        other_woman_partner = engaged[other_woman]
+        if galprefers[other_woman].index(other_woman_partner) > galprefers[other_woman].index(man):
+            print(f"{man} and {other_woman} like each other better than their present partners: {woman} and {other_woman_partner}, respectively")
+            return True
+
+    return False
+
+a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+b = [11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+
+# Check if the current engagements are stable
+stability = is_stable_pair(engagements1, pref_reg_b, pref_reg_a)
+print("Is the engagement stable?", stability)
+
+
+pref_reg_a = {1: [19, 20, 12, 11, 17, 18, 15, 16, 13, 14], 2: [17, 15, 20, 19, 14, 12, 13, 18, 16, 11], 3: [17, 20, 14, 11, 12, 13, 15, 16, 18, 19], 4: [19, 14, 20, 12, 15, 17, 18, 13, 11, 16], 5: [14, 20, 19, 15, 12, 13, 18, 16, 11, 17], 6: [14, 20, 19, 11, 17, 12, 15, 18, 13, 16], 7: [20, 17, 19, 14, 13, 16, 18, 11, 12, 15], 8: [20, 12, 14, 13, 17, 16, 11, 18, 15, 19], 9: [12, 11, 20, 16, 14, 19, 17, 18, 15, 13], 10: [20, 19, 11, 12, 13, 14, 15, 16, 17, 18]}
+
+pref_reg_b = {11: [2, 1, 3, 4, 5, 6, 7, 8, 9, 10], 12: [9, 7, 8, 2, 4, 6, 3, 5, 1, 10], 13: [9, 2, 4, 3, 8, 6, 7, 1, 5, 10], 14: [2, 4, 8, 3, 1, 9, 5, 6, 7, 10], 15: [2, 4, 7, 1, 6, 5, 3, 8, 9, 10], 16: [8, 7, 1, 4, 9, 5, 6, 2, 3, 10], 17: [9, 4, 7, 8, 3, 6, 1, 2, 5, 10], 18: [8, 7, 9, 2, 4, 5, 1, 3, 6, 10], 19: [7, 8, 2, 1, 3, 10, 9, 6, 5, 4], 20: [8, 7, 6, 2, 1, 9, 3, 10, 5, 4]}
+
+
+
+
+
+
+
+
+
+
+
+
 guyprefers = {
  'abe':  ['abi', 'eve', 'cath', 'ivy', 'jan', 'dee', 'fay', 'bea', 'hope', 'gay'],
  'bob':  ['cath', 'hope', 'abi', 'dee', 'eve', 'fay', 'bea', 'jan', 'ivy', 'gay'],
@@ -99,12 +232,29 @@ pref_b =  {
 
 
 
+pref_c = {
+    1: [19, 12, 20, 17, 11, 15, 18, 16, 13, 14], 
+    2: [17, 19, 20, 15, 14, 12, 13, 16, 18, 11], 
+    3: [17, 14, 11, 12, 20, 13, 15, 16, 18, 19], 
+    4: [19, 14, 20, 12, 15, 13, 17, 18, 11, 16], 
+    5: [14, 19, 20, 13, 15, 12, 18, 16, 17, 11], 
+    6: [20, 14, 19, 17, 11, 12, 18, 15, 13, 16], 
+    7: [17, 20, 14, 13, 19, 11, 16, 18, 15, 12], 
+    8: [12, 20, 14, 13, 17, 11, 16, 18, 15, 19], 
+    9: [12, 11, 16, 20, 14, 17, 18, 19, 15, 13], 
+    10: [20, 19, 11, 12, 13, 14, 15, 16, 17, 18]}
 
-
-
-
-
-
+pref_d = {
+    11: [2, 1, 3, 4, 5, 6, 7, 8, 9, 10], 
+    12: [9, 7, 8, 4, 2, 3, 6, 5, 1, 10], 
+    13: [3, 9, 2, 4, 8, 7, 6, 1, 5, 10], 
+    14: [2, 4, 8, 3, 1, 9, 5, 6, 7, 10], 
+    15: [2, 4, 7, 1, 6, 5, 3, 8, 9, 10], 
+    16: [7, 8, 9, 4, 1, 2, 6, 5, 3, 10], 
+    17: [9, 4, 7, 6, 8, 1, 3, 2, 5, 10], 
+    18: [8, 7, 2, 9, 4, 5, 1, 3, 6, 10], 
+    19: [7, 8, 2, 1, 3, 10, 9, 6, 5, 4], 
+    20: [8, 7, 6, 2, 1, 3, 10, 9, 5, 4]}
 
 
 
